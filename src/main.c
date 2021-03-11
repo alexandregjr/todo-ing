@@ -5,7 +5,7 @@
 
 void checkout(int n) {
     printf("\x1b[2J\x1b[H");
-    exit(1);
+    exit(0);
 }
 
 int main(void) {
@@ -25,10 +25,23 @@ int main(void) {
         exit(2);
     }
 
+    system("stty raw");
+    char in = 0;
     while (1) {
-        printf("\x1b[H"); // ESC code to move cursor to top left
-        printf("Hello World!\n");
-        printf("\x1B[2J"); // ESC code to clear screen
+        // Render
+        printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
+                                 // top left
+        printf("Hello World! char=(%c, %d)\n", in, in);
+        printf("\x1b[2H. to exit\n");
+        printf("\x1b[3H");
+
+        // Get input
+        in = getchar();
+        if (in == '.') {
+            system("stty cooked");
+            printf("\x1b[2J\x1b[H");
+            exit(0);
+        }
     }
 
     return 0;
