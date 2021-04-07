@@ -30,7 +30,7 @@ todoT *create_todo(char *text, int len) {
 int get_input(char *str, int len) {
     int i = 0;
     char in = 0;
-    // TODO: backspace key erase last char
+    // TODO(#1): use backspace key to erase last char
     while (in != 13 && i < len) {
         in = getchar();
         if (in == 3) {
