@@ -59,7 +59,7 @@ int get_input(char *str, int len) {
     return i;
 }
 
-// TODO: remove todos
+// TODO(#2): remove todos
 // TODO: save todo in file
 // TODO: add different lists for each todo state
 int main(void) {
