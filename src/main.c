@@ -60,7 +60,7 @@ int get_input(char *str, int len) {
 }
 
 // TODO(#2): remove todos
-// TODO: save todo in file
+// TODO(#3): save todo in file
 // TODO: add different lists for each todo state
 int main(void) {
     system("stty raw");
