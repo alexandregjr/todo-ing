@@ -28,19 +28,29 @@ todoT *create_todo(char *text, int len) {
 }
 
 int get_input(char *str, int len) {
+    memset(str, 0, len);
+
     int i = 0;
     char in = 0;
-    // TODO(#1): use backspace key to erase last char
+
     while (in != 13 && i < len) {
+        printf("\x1b[2J\x1b[Htodo:");
+        if (i > 0) {
+            printf("\x1b[1;7H%s", str);
+        }
+
         in = getchar();
+        if (in == 127) {
+            str[--i] = '\0';
+            continue;
+        }
         if (in == 3) {
             system("stty cooked");
             printf("\x1b[2J\x1b[H");
             exit(0);
             break;
         }
-        str[i] = in;
-        i++;
+        str[i++] = in;
     }
 
     if (i < len)
@@ -49,6 +59,9 @@ int get_input(char *str, int len) {
     return i;
 }
 
+// TODO: remove todos
+// TODO: save todo in file
+// TODO: add different lists for each todo state
 int main(void) {
     system("stty raw");
 
