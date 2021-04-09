@@ -1,5 +1,5 @@
 all:
-	clang -o todo-ing src/main.c -Wall
+	clang -o todo-ing src/*.c -Wall
 
 run:
 	./todo-ing

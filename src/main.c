@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "list.h"
+
 enum state { TODO = 0, DOING, DONE };
 
 typedef struct {
@@ -59,6 +61,11 @@ int get_input(char *str, int len) {
     return i;
 }
 
+void print_todo(void *todo, int pos) {
+    printf("\x1b[%dH[%d] %s\n", pos + 2, ((todoT *)todo)->progress,
+           ((todoT *)todo)->text);
+}
+
 // TODO(#2): remove todos
 // TODO(#3): save todo in file
 // TODO(#4): add different lists for each todo state
@@ -70,24 +77,20 @@ int main(void) {
 
     posT cursor = {0, 0};
 
-    todoT **todo_list = (todoT **)calloc(1024, sizeof(todoT *));
-    int todo_count = 0;
+    listT *todo_list = (listT *)calloc(1, sizeof(listT));
+    todoT *selected = NULL;
     while (1) {
         // Render
         printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
                                  // top left
         printf("Hello World! char=(%c, %d)\n", in, in);
 
-        // RENDER TODOS
-        for (int i = 0; i < todo_count; i++) {
-            printf("\x1b[%dH[%d] %s\n", 2 + i, todo_list[i]->progress,
-                   todo_list[i]->text);
-        }
-        // END RENDER TODOS;
+        // Render Todo's
+        listT_print(todo_list, print_todo);
 
-        printf("\x1b[%dH. to exit\n", 3 + todo_count);
+        printf("\x1b[%dH. to exit\n", 3 + todo_list->size);
 
-        if (todo_count > 0) {
+        if (todo_list->size > 0) {
             printf("\x1b[%d;%dH", 2 + cursor.r, 5 + cursor.c);
         } else {
             printf("\x1b[H");
@@ -105,50 +108,55 @@ int main(void) {
             printf("\x1b[2J\x1b[Htodo: ");
             int len = get_input(str, 1024);
             todoT *new_todo = create_todo(str, len);
-            todo_list[todo_count++] = new_todo;
+            listT_push(todo_list, (void *)new_todo);
+            selected = new_todo;
             break;
         case 'h':
-            if (todo_count == 0)
+            if (todo_list->size == 0)
                 break;
             if (cursor.c > 0)
                 cursor.c--;
             break;
         case 'j':
-            if (todo_count == 0)
+            if (todo_list->size == 0)
                 break;
-            if (cursor.r < todo_count - 1)
+            if (cursor.r < todo_list->size - 1) {
                 cursor.r++;
-            if (cursor.c > todo_list[cursor.r]->len - 2)
-                cursor.c = todo_list[cursor.r]->len - 2;
+                selected = (todoT *)listT_get(todo_list, cursor.r);
+            }
+            if (cursor.c > selected->len - 2)
+                cursor.c = selected->len - 2;
             break;
         case 'k':
-            if (todo_count == 0)
+            if (todo_list->size == 0 || selected == NULL)
                 break;
-            if (cursor.r > 0)
+            if (cursor.r > 0) {
                 cursor.r--;
-            if (cursor.c > todo_list[cursor.r]->len - 2)
-                cursor.c = todo_list[cursor.r]->len - 2;
+                selected = (todoT *)listT_get(todo_list, cursor.r);
+            }
+            if (cursor.c > selected->len - 2)
+                cursor.c = selected->len - 2;
             break;
         case 'l':
-            if (todo_count == 0)
+            if (todo_list->size == 0 || selected == NULL)
                 break;
-            if (cursor.c < todo_list[cursor.r]->len - 2)
+            if (cursor.c < selected->len - 2)
                 cursor.c++;
             break;
         case 'd':
-            if (todo_count == 0)
+            if (todo_list->size == 0)
                 break;
-            todo_list[cursor.r]->progress = DOING;
+            selected->progress = DOING;
             break;
         case 'f':
-            if (todo_count == 0)
+            if (todo_list->size == 0)
                 break;
-            todo_list[cursor.r]->progress = DONE;
+            selected->progress = DONE;
             break;
         case 't':
-            if (todo_count == 0)
+            if (todo_list->size == 0)
                 break;
-            todo_list[cursor.r]->progress = TODO;
+            selected->progress = TODO;
             break;
         }
     }
