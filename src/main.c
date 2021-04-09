@@ -66,6 +66,11 @@ void print_todo(void *todo, int pos) {
            ((todoT *)todo)->text);
 }
 
+void destroy_todo(void *todo) {
+    free(((todoT *)todo)->text);
+    free((todoT *)todo);
+}
+
 // TODO(#2): remove todos
 // TODO(#3): save todo in file
 // TODO(#4): add different lists for each todo state
@@ -103,6 +108,14 @@ int main(void) {
             system("stty cooked");
             printf("\x1b[2J\x1b[H");
             exit(0);
+            break;
+        case 'r':
+            if (todo_list->size == 0)
+                break;
+            listT_remove(todo_list, cursor.r, destroy_todo);
+            if (cursor.r >= todo_list->size)
+                cursor.r = todo_list->size > 0 ? todo_list->size - 1 : 0;
+            selected = listT_get(todo_list, cursor.r);
             break;
         case 'a':
             printf("\x1b[2J\x1b[Htodo: ");

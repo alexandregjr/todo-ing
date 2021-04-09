@@ -35,7 +35,27 @@ void listT_print(listT *list, void (*print)(void *, int)) {
     }
 }
 
-void listT_remove(listT *list, int pos) {}
+void listT_remove(listT *list, int pos, void (*destroy)(void *)) {
+    if (pos >= list->size)
+        return;
+
+    nodeT *last = NULL;
+    nodeT *del = list->begin;
+    for (int i = 0; i < pos; i++) {
+        last = del;
+        del = del->next;
+    }
+
+    if (last != NULL) {
+        last->next = del->next;
+    } else {
+        list->begin = del->next;
+    }
+
+    list->size--;
+    destroy(del->value);
+    free(del);
+}
 
 void *listT_get(listT *list, int pos) {
     if (list->size <= pos)
