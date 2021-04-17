@@ -12,4 +12,6 @@ typedef struct {
 void listT_push(listT *, void *);
 void listT_print(listT *, void (*)(void *, int));
 void listT_remove(listT *, int, void (*)(void *));
+void listT_write(listT *, char *, void (*)(void *, FILE *));
+void listT_load(listT *, char *, void (*)(void **, FILE *));
 void *listT_get(listT *, int);

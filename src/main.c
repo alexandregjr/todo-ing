@@ -18,10 +18,10 @@ typedef struct {
     int c;
 } posT;
 
-todoT *create_todo(char *text, int len) {
+todoT *create_todo(char *text, int len, enum state init) {
     todoT *todo = (todoT *)calloc(1, sizeof(todoT));
 
-    todo->progress = TODO;
+    todo->progress = init;
     todo->text = (char *)calloc(len + 1, sizeof(char));
     strcpy(todo->text, text);
     todo->len = len;
@@ -52,18 +52,34 @@ int get_input(char *str, int len) {
             exit(0);
             break;
         }
+        if (in == 13)
+            break;
+
         str[i++] = in;
     }
 
     if (i < len)
-        str[i] = 0;
+        str[i] = '\0';
 
     return i;
 }
 
 void print_todo(void *todo, int pos) {
-    printf("\x1b[%dH[%d] %s\n", pos + 2, ((todoT *)todo)->progress,
+    printf("\x1b[%dH[%d] %s", pos + 2, ((todoT *)todo)->progress,
            ((todoT *)todo)->text);
+}
+
+void todo_writer(void *todo, FILE *f) {
+    fprintf(f, "%d\t%d\t%s", ((todoT *)todo)->progress, ((todoT *)todo)->len,
+            ((todoT *)todo)->text);
+}
+
+void todo_reader(void **todo, FILE *f) {
+    int state, len;
+    fscanf(f, "%d\t%d\t", &state, &len);
+    char str[1024];
+    fgets(str, 1025, f);
+    *todo = create_todo(str, len, state);
 }
 
 void destroy_todo(void *todo) {
@@ -71,11 +87,12 @@ void destroy_todo(void *todo) {
     free((todoT *)todo);
 }
 
-// TODO(#2): remove todos
-// TODO(#3): save todo in file
 // TODO(#4): add different lists for each todo state
 int main(void) {
-    system("stty raw");
+
+    char save_path[1024];
+    snprintf(save_path, 1024, "%s", getenv("HOME"));
+    strncat(save_path, "/.config/todo-ing.db", 1024);
 
     char in = 0;
     char str[1024];
@@ -84,7 +101,13 @@ int main(void) {
 
     listT *todo_list = (listT *)calloc(1, sizeof(listT));
     todoT *selected = NULL;
+
+    listT_load(todo_list, save_path, todo_reader);
+    if (todo_list->size > 0)
+        selected = listT_get(todo_list, cursor.r);
+
     while (1) {
+        system("stty raw");
         // Render
         printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
                                  // top left
@@ -120,7 +143,7 @@ int main(void) {
         case 'a':
             printf("\x1b[2J\x1b[Htodo: ");
             int len = get_input(str, 1024);
-            todoT *new_todo = create_todo(str, len);
+            todoT *new_todo = create_todo(str, len, TODO);
             listT_push(todo_list, (void *)new_todo);
             selected = new_todo;
             break;
@@ -170,6 +193,9 @@ int main(void) {
             if (todo_list->size == 0)
                 break;
             selected->progress = TODO;
+            break;
+        case 's':
+            listT_write(todo_list, save_path, todo_writer);
             break;
         }
     }

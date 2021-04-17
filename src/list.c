@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "list.h"
@@ -32,6 +33,41 @@ void listT_print(listT *list, void (*print)(void *, int)) {
         }
         curr = curr->next;
         i++;
+    }
+}
+
+void listT_write(listT *list, char *filepath, void (*write)(void *, FILE *)) {
+    FILE *file = fopen(filepath, "w");
+
+    if (file == NULL)
+        return;
+
+    nodeT *curr = list->begin;
+    while (curr) {
+        if (write) {
+            write(curr->value, file);
+        } else {
+            // no print provided
+        }
+        curr = curr->next;
+    }
+
+    fclose(file);
+}
+
+void listT_load(listT *list, char *filepath, void (*read)(void **, FILE *)) {
+    FILE *file = fopen(filepath, "r");
+
+    if (!file)
+        return;
+
+    void *item = NULL;
+
+    int c = 0;
+    while ((c = getc(file)) != EOF) {
+        ungetc(c, file);
+        read(&item, file);
+        listT_push(list, item);
     }
 }
 
