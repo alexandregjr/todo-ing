@@ -88,6 +88,7 @@ void destroy_todo(void *todo) {
 }
 
 // TODO(#4): add different lists for each todo state
+// TODO(#5): add vim-like commands
 int main(void) {
 
     char save_path[1024];
