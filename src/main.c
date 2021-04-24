@@ -89,6 +89,7 @@ void destroy_todo(void *todo) {
 
 // TODO(#4): add different lists for each todo state
 // TODO(#5): add vim-like commands
+// TODO(#6): add color/font-style support
 int main(void) {
 
     char save_path[1024];
@@ -128,6 +129,9 @@ int main(void) {
         // Get input
         in = getchar();
         switch (in) {
+        case ':':
+            get_command();
+            break;
         case '.':
             system("stty cooked");
             printf("\x1b[2J\x1b[H");
