@@ -5,6 +5,8 @@
 
 #include "list.h"
 
+#define INF_SIZE 10000
+
 enum state { TODO = 0, DOING, DONE };
 
 typedef struct {
@@ -17,6 +19,9 @@ typedef struct {
     int r;
     int c;
 } posT;
+
+listT *todo_list;
+char save_path[1024];
 
 todoT *create_todo(char *text, int len, enum state init) {
     todoT *todo = (todoT *)calloc(1, sizeof(todoT));
@@ -87,12 +92,85 @@ void destroy_todo(void *todo) {
     free((todoT *)todo);
 }
 
+void render_command_line(char *str) {
+    printf("\x1b[%dB\x1b[2K\x1b[G:%s", INF_SIZE, str);
+}
+
+void save_todos() { listT_write(todo_list, save_path, todo_writer); }
+
+void quit() {
+    system("stty cooked");
+    printf("\x1b[2J\x1b[H");
+    exit(0);
+}
+
+void parse_command(char *cmd, int len) {
+    if (!strncmp(cmd, "q", len)) {
+        quit();
+    }
+
+    if (!strncmp(cmd, "w", len)) {
+        save_todos();
+    }
+
+    if (!strncmp(cmd, "wq", len)) {
+        save_todos();
+        quit();
+    }
+}
+
+void get_command() {
+    char command[1024];
+    memset(command, 0, sizeof(command));
+
+    int i = 0;
+    char in = 0;
+    while (in != 13 && i < 1024) {
+        render_command_line(command);
+
+        in = getchar();
+        if (in == 127) {
+            command[--i] = '\0';
+            continue;
+        }
+
+        if (in == 13)
+            break;
+
+        command[i++] = in;
+    }
+
+    if (i < 1024)
+        command[i] = '\0';
+
+    parse_command(command, i);
+}
+
+void render(posT cursor) {
+    // Render
+    // printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
+    // top left
+    printf("\x1b[2J\x1b[Htodo-ing app");
+
+    // Render Todo's
+    listT_print(todo_list, print_todo);
+
+    printf("\x1b[%dB\x1b[2K", INF_SIZE);
+
+    // Set cursor pos
+    if (todo_list->size > 0) {
+        printf("\x1b[%d;%dH", 2 + cursor.r, 5 + cursor.c);
+    } else {
+        printf("\x1b[H");
+    }
+}
+
 // TODO(#4): add different lists for each todo state
 // TODO(#5): add vim-like commands
 // TODO(#6): add color/font-style support
+//  (https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)
 int main(void) {
 
-    char save_path[1024];
     snprintf(save_path, 1024, "%s", getenv("HOME"));
     strncat(save_path, "/.config/todo-ing.db", 1024);
 
@@ -101,42 +179,26 @@ int main(void) {
 
     posT cursor = {0, 0};
 
-    listT *todo_list = (listT *)calloc(1, sizeof(listT));
+    todo_list = (listT *)calloc(1, sizeof(listT));
     todoT *selected = NULL;
 
     listT_load(todo_list, save_path, todo_reader);
     if (todo_list->size > 0)
         selected = listT_get(todo_list, cursor.r);
 
+    system("stty raw");
     while (1) {
-        system("stty raw");
-        // Render
-        printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
-                                 // top left
-        printf("Hello World! char=(%c, %d)\n", in, in);
-
-        // Render Todo's
-        listT_print(todo_list, print_todo);
-
-        printf("\x1b[%dH. to exit\n", 3 + todo_list->size);
-
-        if (todo_list->size > 0) {
-            printf("\x1b[%d;%dH", 2 + cursor.r, 5 + cursor.c);
-        } else {
-            printf("\x1b[H");
-        }
+        render(cursor);
 
         // Get input
         in = getchar();
         switch (in) {
         case ':':
+            render(cursor);
             get_command();
             break;
-        case '.':
-            system("stty cooked");
-            printf("\x1b[2J\x1b[H");
-            exit(0);
-            break;
+        // case '.':
+        //    break;
         case 'r':
             if (todo_list->size == 0)
                 break;
@@ -199,9 +261,9 @@ int main(void) {
                 break;
             selected->progress = TODO;
             break;
-        case 's':
-            listT_write(todo_list, save_path, todo_writer);
-            break;
+        //case 's':
+        //    listT_write(todo_list, save_path, todo_writer);
+        //    break;
         }
     }
 
