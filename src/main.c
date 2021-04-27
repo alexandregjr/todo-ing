@@ -150,7 +150,8 @@ void render(posT cursor) {
     // Render
     // printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
     // top left
-    printf("\x1b[2J\x1b[Htodo-ing app");
+    printf("\x1b[2J\x1b[H\x1b[1m\x1b[3m\x1b[92m"
+            "todo-ing app\x1b[m");
 
     // Render Todo's
     listT_print(todo_list, print_todo);
