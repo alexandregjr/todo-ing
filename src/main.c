@@ -4,8 +4,7 @@
 #include <string.h>
 
 #include "list.h"
-
-#define INF_SIZE 10000
+#include "utils.h"
 
 enum state { TODO = 0, DOING, DONE };
 
@@ -70,8 +69,16 @@ int get_input(char *str, int len) {
 }
 
 void print_todo(void *todo, int pos) {
-    printf("\x1b[%dH[%d] %s", pos + 2, ((todoT *)todo)->progress,
-           ((todoT *)todo)->text);
+    if (((todoT *)todo)->progress == 0) {
+        printf("\x1b[%dH" BG_RED "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
+               ((todoT *)todo)->text);
+    } else if (((todoT *)todo)->progress == 1) {
+        printf("\x1b[%dH" BG_YELLOW "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
+               ((todoT *)todo)->text);
+    } else if (((todoT *)todo)->progress == 2) {
+        printf("\x1b[%dH" BG_GREEN "  " RESET_DECOR FONT_WHITE" %s", pos + 2,
+               ((todoT *)todo)->text);
+    }
 }
 
 void todo_writer(void *todo, FILE *f) {
@@ -93,7 +100,7 @@ void destroy_todo(void *todo) {
 }
 
 void render_command_line(char *str) {
-    printf("\x1b[%dB\x1b[2K\x1b[G:%s", INF_SIZE, str);
+    printf(LAST_LINE FONT_BOLD FONT_WHITE ":%s", str);
 }
 
 void save_todos() { listT_write(todo_list, save_path, todo_writer); }
@@ -113,7 +120,9 @@ void parse_command(char *cmd, int len) {
         save_todos();
     }
 
-    if (!strncmp(cmd, "wq", len)) {
+    if (len < 2) return;
+
+    else if (!strncmp(cmd, "wq", len)) {
         save_todos();
         quit();
     }
@@ -148,15 +157,12 @@ void get_command() {
 
 void render(posT cursor) {
     // Render
-    // printf("\x1b[2J\x1b[H"); // ESC code to clear screen & move cursor to
     // top left
-    printf("\x1b[2J\x1b[H\x1b[1m\x1b[3m\x1b[92m"
-            "todo-ing app\x1b[m");
+    printf("\x1b[2J\x1b[H" FONT_BOLD FONT_ITALIC FONT_GREEN
+           "todo-ing app" RESET_DECOR);
 
     // Render Todo's
     listT_print(todo_list, print_todo);
-
-    printf("\x1b[%dB\x1b[2K", INF_SIZE);
 
     // Set cursor pos
     if (todo_list->size > 0) {
@@ -262,9 +268,9 @@ int main(void) {
                 break;
             selected->progress = TODO;
             break;
-        //case 's':
-        //    listT_write(todo_list, save_path, todo_writer);
-        //    break;
+            // case 's':
+            //    listT_write(todo_list, save_path, todo_writer);
+            //    break;
         }
     }
 
