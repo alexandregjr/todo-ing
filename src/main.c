@@ -4,15 +4,8 @@
 #include <string.h>
 
 #include "list.h"
+#include "todo.h"
 #include "utils.h"
-
-enum state { TODO = 0, DOING, DONE };
-
-typedef struct {
-    char *text;
-    int len;
-    enum state progress;
-} todoT;
 
 typedef struct {
     int r;
@@ -21,17 +14,6 @@ typedef struct {
 
 listT *todo_list;
 char save_path[1024];
-
-todoT *create_todo(char *text, int len, enum state init) {
-    todoT *todo = (todoT *)calloc(1, sizeof(todoT));
-
-    todo->progress = init;
-    todo->text = (char *)calloc(len + 1, sizeof(char));
-    strcpy(todo->text, text);
-    todo->len = len;
-
-    return todo;
-}
 
 int get_input(char *str, int len) {
     memset(str, 0, len);
@@ -68,42 +50,24 @@ int get_input(char *str, int len) {
     return i;
 }
 
-void print_todo(void *todo, int pos) {
-    if (((todoT *)todo)->progress == 0) {
-        printf("\x1b[%dH" BG_RED "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
-               ((todoT *)todo)->text);
-    } else if (((todoT *)todo)->progress == 1) {
-        printf("\x1b[%dH" BG_YELLOW "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
-               ((todoT *)todo)->text);
-    } else if (((todoT *)todo)->progress == 2) {
-        printf("\x1b[%dH" BG_GREEN "  " RESET_DECOR FONT_WHITE" %s", pos + 2,
-               ((todoT *)todo)->text);
-    }
-}
-
-void todo_writer(void *todo, FILE *f) {
+void item_writer(void *todo, FILE *f) {
     fprintf(f, "%d\t%d\t%s", ((todoT *)todo)->progress, ((todoT *)todo)->len,
             ((todoT *)todo)->text);
 }
 
-void todo_reader(void **todo, FILE *f) {
+void item_reader(void **todo, FILE *f) {
     int state, len;
     fscanf(f, "%d\t%d\t", &state, &len);
-    char str[1024];
-    fgets(str, 1025, f);
+    char str[len + 1];
+    fgets(str, len + 1, f);
     *todo = create_todo(str, len, state);
 }
 
-void destroy_todo(void *todo) {
-    free(((todoT *)todo)->text);
-    free((todoT *)todo);
-}
+void save_in_disk() { listT_write(todo_list, save_path, item_writer); }
 
 void render_command_line(char *str) {
     printf(LAST_LINE FONT_BOLD FONT_WHITE ":%s", str);
 }
-
-void save_todos() { listT_write(todo_list, save_path, todo_writer); }
 
 void quit() {
     system("stty cooked");
@@ -117,13 +81,14 @@ void parse_command(char *cmd, int len) {
     }
 
     if (!strncmp(cmd, "w", len)) {
-        save_todos();
+        save_in_disk();
     }
 
-    if (len < 2) return;
+    if (len < 2)
+        return;
 
     else if (!strncmp(cmd, "wq", len)) {
-        save_todos();
+        save_in_disk();
         quit();
     }
 }
@@ -189,7 +154,7 @@ int main(void) {
     todo_list = (listT *)calloc(1, sizeof(listT));
     todoT *selected = NULL;
 
-    listT_load(todo_list, save_path, todo_reader);
+    listT_load(todo_list, save_path, item_reader);
     if (todo_list->size > 0)
         selected = listT_get(todo_list, cursor.r);
 
@@ -217,6 +182,9 @@ int main(void) {
         case 'a':
             printf("\x1b[2J\x1b[Htodo: ");
             int len = get_input(str, 1024);
+            if (len == 0)
+                break;
+
             todoT *new_todo = create_todo(str, len, TODO);
             listT_push(todo_list, (void *)new_todo);
             selected = new_todo;
@@ -268,9 +236,6 @@ int main(void) {
                 break;
             selected->progress = TODO;
             break;
-            // case 's':
-            //    listT_write(todo_list, save_path, todo_writer);
-            //    break;
         }
     }
 
