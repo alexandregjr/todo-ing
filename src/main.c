@@ -44,6 +44,8 @@ int get_input(char *str, int len) {
         str[i++] = in;
     }
 
+    // TODO(#7): trim input to avoid bugs writting
+    
     if (i < len)
         str[i] = '\0';
 
