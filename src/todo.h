@@ -10,7 +10,7 @@ typedef struct {
 } todoT;
 
 todoT *create_todo(char *, int, enum state);
-void print_todo(void *, int );
+void print_todo(void *, int);
 void destroy_todo(void *);
 
 #endif // TODO_H_
