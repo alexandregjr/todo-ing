@@ -173,6 +173,9 @@ void render(posT cursor) {
 // TODO(#5): add vim-like commands
 // TODO(#6): add color/font-style support
 //  (https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)
+// TODO(#8): support for different workspaces
+//   it should work like having multiple files open in vim, but with workspace
+//   bar in the bottom (like i3 for instance)
 int main(void) {
 
     snprintf(save_path, 1024, "%s", getenv("HOME"));
