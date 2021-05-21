@@ -3,46 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "command.h"
 #include "list.h"
+#include "text_utils.h"
 #include "todo.h"
-#include "utils.h"
 
 typedef struct {
     int r;
     int c;
 } posT;
-
-listT *todo_list;
-char save_path[1024];
-
-int trimn(char *str, int len) {
-    int l_count = 0;
-    while (l_count < len && (str[l_count] == ' ' || str[l_count] == '\t')) {
-        l_count++;
-    }
-
-    if (l_count == len) {
-        str[0] = '\0';
-        return 0;
-    }
-
-    for (int i = 0; i < len - l_count; i++) {
-        str[i] = str[i + l_count];
-    }
-
-    str[len - l_count] = '\0';
-
-    len -= l_count;
-    int r_count = 0;
-    while (len - 1 - r_count >= 0 &&
-           (str[len - 1 - r_count] == ' ' || str[len - 1 - r_count] == '\t')) {
-        r_count++;
-    }
-
-    str[len - r_count] = '\0';
-
-    return len - r_count;
-}
 
 int get_input(char *str, int len) {
     memset(str, 0, len);
@@ -73,7 +42,6 @@ int get_input(char *str, int len) {
         str[i++] = in;
     }
 
-
     if (i < len)
         str[i] = '\0';
 
@@ -82,50 +50,29 @@ int get_input(char *str, int len) {
     return i;
 }
 
-void item_writer(void *todo, FILE *f) {
-    fprintf(f, "%d\t%d\t%s", ((todoT *)todo)->progress, ((todoT *)todo)->len,
-            ((todoT *)todo)->text);
-}
-
-void item_reader(void **todo, FILE *f) {
-    int state, len;
-    fscanf(f, "%d\t%d\t", &state, &len);
-    char str[len + 1];
-    fgets(str, len + 1, f);
-    *todo = create_todo(str, len, state);
-}
-
-void save_in_disk() { listT_write(todo_list, save_path, item_writer); }
-
 void render_command_line(char *str) {
     printf(LAST_LINE FONT_BOLD FONT_WHITE ":%s", str);
 }
 
-void quit() {
-    system("stty cooked");
-    printf("\x1b[2J\x1b[H");
-    exit(0);
-}
-
-void parse_command(char *cmd, int len) {
+void parse_command(char *cmd, int len, listT* todo_list) {
     if (!strncmp(cmd, "q", len)) {
-        quit();
+        quit(NULL, todo_list);
     }
 
     if (!strncmp(cmd, "w", len)) {
-        save_in_disk();
+        save_in_disk(NULL, todo_list);
     }
 
     if (len < 2)
         return;
 
     else if (!strncmp(cmd, "wq", len)) {
-        save_in_disk();
-        quit();
+        save_in_disk(NULL, todo_list);
+        quit(NULL, todo_list);
     }
 }
 
-void get_command() {
+void get_command(listT* todo_list) {
     char command[1024];
     memset(command, 0, sizeof(command));
 
@@ -149,10 +96,10 @@ void get_command() {
     if (i < 1024)
         command[i] = '\0';
 
-    parse_command(command, i);
+    parse_command(command, i, todo_list);
 }
 
-void render(posT cursor) {
+void render(listT* todo_list, posT cursor) {
     // Render
     // top left
     printf("\x1b[2J\x1b[H" FONT_BOLD FONT_ITALIC FONT_GREEN
@@ -178,31 +125,28 @@ void render(posT cursor) {
 //   bar in the bottom (like i3 for instance)
 int main(void) {
 
-    snprintf(save_path, 1024, "%s", getenv("HOME"));
-    strncat(save_path, "/.config/todo-ing.db", 1024);
-
     char in = 0;
     char str[1024];
 
     posT cursor = {0, 0};
 
-    todo_list = (listT *)calloc(1, sizeof(listT));
+    listT *todo_list = (listT *)calloc(1, sizeof(listT));
     todoT *selected = NULL;
-
-    listT_load(todo_list, save_path, item_reader);
+    
+    load_from_disk(NULL, todo_list);
     if (todo_list->size > 0)
         selected = listT_get(todo_list, cursor.r);
 
     system("stty raw");
     while (1) {
-        render(cursor);
+        render(todo_list, cursor);
 
         // Get input
         in = getchar();
         switch (in) {
         case ':':
-            render(cursor);
-            get_command();
+            render(todo_list, cursor);
+            get_command(todo_list);
             break;
         // case '.':
         //    break;

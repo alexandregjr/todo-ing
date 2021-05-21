@@ -30,4 +30,6 @@
 #define LAST_LINE "\x1b[10000B\x1b[2K\x1b[G"
 // END MOVEMENTS
 
+int trimn(char *str, int len);
+
 #endif // UTILS_H_
