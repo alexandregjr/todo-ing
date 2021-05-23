@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "list.h"
 
 void listT_push(listT *list, void *item) {

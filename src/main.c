@@ -148,8 +148,6 @@ int main(void) {
             render(todo_list, cursor);
             get_command(todo_list);
             break;
-        // case '.':
-        //    break;
         case 'r':
             if (todo_list->size == 0)
                 break;

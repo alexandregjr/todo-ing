@@ -1,6 +1,12 @@
 #ifndef TODO_H_
 #define TODO_H_
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "text_utils.h"
+
 enum state { TODO = 0, DOING, DONE };
 
 typedef struct {

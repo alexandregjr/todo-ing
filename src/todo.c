@@ -1,9 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "todo.h"
-#include "text_utils.h"
 
 todoT *create_todo(char *text, int len, enum state init) {
     todoT *todo = (todoT *)calloc(1, sizeof(todoT));
