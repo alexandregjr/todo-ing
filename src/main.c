@@ -123,6 +123,7 @@ void render(listT* todo_list, posT cursor) {
 // TODO(#8): support for different workspaces
 //   it should work like having multiple files open in vim, but with workspace
 //   bar in the bottom (like i3 for instance)
+// TODO(#9): add pre-compiled headers
 int main(void) {
 
     char in = 0;
