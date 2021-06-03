@@ -1,6 +1,9 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdio.h>
+#include <stdarg.h>
+
 // DECORATIONS
 #define FONT_BLACK "\x1b[30m"
 #define FONT_RED "\x1b[31m"
@@ -31,5 +34,10 @@
 // END MOVEMENTS
 
 int trimn(char *str, int len);
+void print_formatted(char *, char *, ...);
+void set_cursor(int, int);
+void move_cursor(int, int);
+void clear_screen();
+void clear_line();
 
 #endif // UTILS_H_

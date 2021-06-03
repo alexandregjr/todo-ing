@@ -9,6 +9,9 @@
 #include "list.h"
 #include "todo.h"
 
+#define TITLE_STYLE FONT_GREEN FONT_BOLD FONT_ITALIC
+#define COMMAND_STYLE FONT_WHITE FONT_BOLD
+
 typedef struct {
     int r;
     int c;

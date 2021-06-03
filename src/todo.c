@@ -12,16 +12,15 @@ todoT *create_todo(char *text, int len, enum state init) {
 }
 
 void print_todo(void *todo, int pos) {
+    set_cursor(pos + 2, 1);
     if (((todoT *)todo)->progress == 0) {
-        printf("\x1b[%dH" BG_RED "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
-               ((todoT *)todo)->text);
+        print_formatted(TODO_COLOR, "  ");
     } else if (((todoT *)todo)->progress == 1) {
-        printf("\x1b[%dH" BG_YELLOW "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
-               ((todoT *)todo)->text);
+        print_formatted(DOING_COLOR, "  ");
     } else if (((todoT *)todo)->progress == 2) {
-        printf("\x1b[%dH" BG_GREEN "  " RESET_DECOR FONT_WHITE " %s", pos + 2,
-               ((todoT *)todo)->text);
+        print_formatted(DONE_COLOR, "  ");
     }
+    print_formatted(TEXT_STYLE, " %s", ((todoT *)todo)->text);
 }
 
 void destroy_todo(void *todo) {

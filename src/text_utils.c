@@ -28,3 +28,38 @@ int trimn(char *str, int len) {
 
     return len - r_count;
 }
+
+void print_formatted(char* format, char* text, ...) {
+    va_list args;
+    va_start(args, text);
+    
+    printf("%s", format);
+    vprintf(text, args);
+    printf("%s", RESET_DECOR);
+}
+
+void set_cursor(int x, int y) {
+    printf("\x1b[%d;%dH", x, y);
+}
+
+void move_cursor(int x, int y) {
+    if (x < 0) {
+        printf("\x1b[%dA", x - (2 * x));
+    } else if (x > 0) {
+        printf("\x1b[%dB", x);
+    }
+
+    if (y < 0) {
+        printf("\x1b[%dD", y - (2 * y));
+    } else if (y > 0) {
+        printf("\x1b[%dC", y);
+    }
+}
+
+void clear_screen() {
+    printf("\x1b[2J");
+}
+
+void clear_line() {
+    printf("\x1b[2K");
+}

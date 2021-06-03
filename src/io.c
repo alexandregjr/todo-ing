@@ -7,22 +7,30 @@ int get_input(char *str, int len) {
     char in = 0;
 
     while (in != 13 && i < len) {
-        printf("\x1b[2J\x1b[Htodo:");
+        clear_screen();
+        set_cursor(1, 1);
+        print_formatted(FONT_WHITE FONT_BOLD, "todo:");
         if (i > 0) {
-            printf("\x1b[1;7H%s", str);
+            set_cursor(1, 7);
+            print_formatted(FONT_WHITE, "%s", str);
         }
 
         in = getchar();
         if (in == 127) {
-            str[--i] = '\0';
+            if (i > 0)
+                str[--i] = '\0';
+
             continue;
         }
+
         if (in == 3) {
             system("stty cooked");
-            printf("\x1b[2J\x1b[H");
+            clear_screen();
+            set_cursor(1, 1);
             exit(0);
             break;
         }
+
         if (in == 13)
             break;
 
@@ -65,22 +73,26 @@ void get_command(listT *todo_list) {
 }
 
 void render_command_line(char *str) {
-    printf(LAST_LINE FONT_BOLD FONT_WHITE ":%s", str);
+    move_cursor(10000, 1);
+    clear_line();
+    move_cursor(0, -10000);
+    print_formatted(COMMAND_STYLE, ":%s", str);
 }
 
 void render(listT *todo_list, posT cursor) {
     // Render
     // top left
-    printf("\x1b[2J\x1b[H" FONT_BOLD FONT_ITALIC FONT_GREEN
-           "todo-ing app" RESET_DECOR);
+    clear_screen();
+    set_cursor(1, 1);
+    print_formatted(TITLE_STYLE, "todo-ing app");
 
     // Render Todo's
     listT_print(todo_list, print_todo);
 
     // Set cursor pos
     if (todo_list->size > 0) {
-        printf("\x1b[%d;%dH", 2 + cursor.r, 5 + cursor.c);
+        set_cursor(2 + cursor.r, 5 + cursor.c);
     } else {
-        printf("\x1b[H");
+        set_cursor(1, 1);
     }
 }

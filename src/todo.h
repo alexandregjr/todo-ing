@@ -7,6 +7,11 @@
 
 #include "text_utils.h"
 
+#define TEXT_STYLE FONT_WHITE
+#define TODO_COLOR BG_RED
+#define DOING_COLOR BG_YELLOW
+#define DONE_COLOR BG_GREEN
+
 enum state { TODO = 0, DOING, DONE };
 
 typedef struct {
